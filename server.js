@@ -96,6 +96,9 @@ io.on('connection', (socket) => {
     const current = room.gameState.currentTurn;
     const playerId = room.players[current];
 
+    // ✅ Проверка дали играчът е на ход
+    if (socket.id !== playerId) return;
+
     room.gameState.table.push({ card, playerId });
     room.gameState.hands[current] = room.gameState.hands[current].filter(
       c => c.suit !== card.suit || c.value !== card.value
