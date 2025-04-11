@@ -11,9 +11,8 @@ function joinRoom() {
   }
 }
 
-socket.on('playersUpdate', (players) => {
-  document.getElementById('players').innerText =
-    'Играчите в стаята:\n' + players.join('\n');
+socket.on('playersUpdate', (names) => {
+  document.getElementById('players').innerHTML = 'Играч(и):<br>' + names.join('<br>');
 });
 
 socket.on('startGame', () => {
