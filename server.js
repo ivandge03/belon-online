@@ -21,29 +21,44 @@ function shuffleDeck() {
   return deck.sort(() => Math.random() - 0.5);
 }
 
+function dealCards(deck, numCards, playersCount) {
+  const hands = Array.from({ length: playersCount }, () => []);
+  for (let i = 0; i < numCards * playersCount; i++) {
+    hands[i % playersCount].push(deck.shift());
+  }
+  return hands;
+}
+
 function restartGame(roomCode) {
   const room = rooms[roomCode];
   const deck = shuffleDeck();
-  const hands = [[], [], [], []];
-
-  // Коректно раздаване по 5 карти на играч (общо 20)
-  for (let i = 0; i < 20; i++) hands[i % 4].push(deck[i]);
-
   room.gameState = {
-    hands,
+    deck,
+    hands: dealCards(deck, 5, 4),
     trump: null,
     currentTurn: 0,
     table: [],
-    points: [0, 0]
+    points: [0, 0],
+    wonCards: [[], []]
   };
 
   room.players.forEach((playerId, i) => {
-    io.to(playerId).emit('yourHand', hands[i]);
+    io.to(playerId).emit('yourHand', room.gameState.hands[i]);
     io.to(playerId).emit('playersHands', { myIndex: i, totalPlayers: 4 });
   });
 
   io.to(room.players[0]).emit('chooseTrump');
   io.to(roomCode).emit('startGame');
+}
+
+function dealAdditionalCards(roomCode) {
+  const room = rooms[roomCode];
+  const additionalCards = dealCards(room.gameState.deck, 3, 4);
+  room.gameState.hands.forEach((hand, index) => hand.push(...additionalCards[index]));
+
+  room.players.forEach((playerId, i) => {
+    io.to(playerId).emit('yourHand', room.gameState.hands[i]);
+  });
 }
 
 io.on('connection', (socket) => {
@@ -64,6 +79,7 @@ io.on('connection', (socket) => {
     const room = rooms[roomCode];
     room.gameState.trump = suit;
     io.to(roomCode).emit('trumpChosen', suit);
+    dealAdditionalCards(roomCode);
     io.to(room.players[room.gameState.currentTurn]).emit('yourTurn');
   });
 
@@ -71,16 +87,25 @@ io.on('connection', (socket) => {
     const room = rooms[roomCode];
     const current = room.gameState.currentTurn;
 
-    if (socket.id !== room.players[current]) return; // Проверка на ход
+    if (socket.id !== room.players[current]) return;
 
     room.gameState.table.push({ card, playerId: socket.id });
-    room.gameState.hands[current] = room.gameState.hands[current].filter(c => c !== card);
+    room.gameState.hands[current] = room.gameState.hands[current].filter(c => !(c.value === card.value && c.suit === card.suit));
 
     io.to(roomCode).emit('cardPlayed', { card, playerId: socket.id });
 
     if (room.gameState.table.length === 4) {
+      const winnerIndex = Math.floor(Math.random() * 4);
+      const winningTeam = winnerIndex % 2;
+      room.gameState.wonCards[winningTeam].push(...room.gameState.table);
       room.gameState.table = [];
-      room.gameState.currentTurn = (current + 1) % 4;
+      room.gameState.currentTurn = winnerIndex;
+      io.to(roomCode).emit('roundWinner', { winner: room.names[winnerIndex], team: winningTeam });
+
+      if (room.gameState.hands.every(hand => hand.length === 0)) {
+        const teamScores = room.gameState.wonCards.map(cards => cards.length);
+        io.to(roomCode).emit('gameOver', { scores: teamScores });
+      }
     } else {
       room.gameState.currentTurn = (current + 1) % 4;
     }
