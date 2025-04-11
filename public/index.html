@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Белот Онлайн</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game">
+    <h1>Онлайн Белот</h1>
+    <input id="roomCode" placeholder="Код на стая">
+    <button onclick="joinRoom()">Влез в стая</button>
+    <div id="status"></div>
+    <div id="players"></div>
+    <div id="hand"></div>
+    <div id="trumpChoice" style="display:none">
+      <p>Избери коз:</p>
+      <button onclick="sendTrump('spades')">♠</button>
+      <button onclick="sendTrump('hearts')">♥</button>
+      <button onclick="sendTrump('diamonds')">♦</button>
+      <button onclick="sendTrump('clubs')">♣</button>
+      <button onclick="sendTrump(null)">Пропусни</button>
+    </div>
+    <div id="table"></div>
+  </div>
+  <script src="main.js"></script>
+</body>
+</html>

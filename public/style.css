@@ -1,0 +1,55 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #0e0e0e;
+  color: white;
+  margin: 0;
+  padding: 20px;
+}
+input, button {
+  padding: 10px;
+  margin: 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+}
+button {
+  cursor: pointer;
+  background-color: #444;
+  color: white;
+}
+button:hover {
+  background-color: #666;
+}
+#hand {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+#table {
+  margin-top: 20px;
+  min-height: 60px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.card {
+  display: inline-block;
+  padding: 10px;
+  margin: 5px;
+  background: white;
+  color: black;
+  border-radius: 8px;
+  min-width: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+#trumpChoice {
+  margin-top: 20px;
+}
+#status {
+  margin-top: 20px;
+  white-space: pre-line;
+}

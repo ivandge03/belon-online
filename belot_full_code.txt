@@ -1,0 +1,204 @@
+// ===== server.js =====
+
+
+// ===== package.json =====
+{
+  "name": "belot-online",
+  "version": "1.0.0",
+  "description": "Мултиплейър игра на Белот с HTML, CSS, JS и Socket.IO",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  }
+}
+
+// ===== public/index.html =====
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Белот Онлайн</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game">
+    <h1>Онлайн Белот</h1>
+    <input id="roomCode" placeholder="Код на стая">
+    <button onclick="joinRoom()">Влез в стая</button>
+    <div id="status"></div>
+    <div id="players"></div>
+    <div id="hand"></div>
+    <div id="trumpChoice" style="display:none">
+      <p>Избери коз:</p>
+      <button onclick="sendTrump('spades')">♠</button>
+      <button onclick="sendTrump('hearts')">♥</button>
+      <button onclick="sendTrump('diamonds')">♦</button>
+      <button onclick="sendTrump('clubs')">♣</button>
+      <button onclick="sendTrump(null)">Пропусни</button>
+    </div>
+    <div id="table"></div>
+  </div>
+  <script src="main.js"></script>
+</body>
+</html>
+
+
+// ===== public/style.css =====
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #0e0e0e;
+  color: white;
+  margin: 0;
+  padding: 20px;
+}
+input, button {
+  padding: 10px;
+  margin: 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+}
+button {
+  cursor: pointer;
+  background-color: #444;
+  color: white;
+}
+button:hover {
+  background-color: #666;
+}
+#hand {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+#table {
+  margin-top: 20px;
+  min-height: 60px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.card {
+  display: inline-block;
+  padding: 10px;
+  margin: 5px;
+  background: white;
+  color: black;
+  border-radius: 8px;
+  min-width: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+#trumpChoice {
+  margin-top: 20px;
+}
+#status {
+  margin-top: 20px;
+  white-space: pre-line;
+}
+
+
+// ===== public/main.js =====
+const socket = io();
+
+function joinRoom() {
+  const roomCode = document.getElementById('roomCode').value;
+  socket.emit('joinRoom', roomCode);
+  document.getElementById('status').innerText = 'Изчакване на други играчи...';
+}
+
+socket.on('playersUpdate', (players) => {
+  document.getElementById('players').innerText = 'Играчите в стаята: ' + players.length;
+});
+
+socket.on('startGame', () => {
+  document.getElementById('status').innerText = 'Играта започва!';
+});
+
+socket.on('yourHand', (cards) => {
+  const handDiv = document.getElementById('hand');
+  handDiv.innerHTML = '';
+  cards.forEach(card => {
+    const cardDiv = document.createElement('div');
+    cardDiv.classList.add('card');
+    cardDiv.innerText = card.value + ' ' + card.suit;
+    cardDiv.onclick = () => playCard(card);
+    handDiv.appendChild(cardDiv);
+  });
+});
+
+socket.on('chooseTrump', () => {
+  document.getElementById('trumpChoice').style.display = 'block';
+});
+
+function sendTrump(suit) {
+  const roomCode = document.getElementById('roomCode').value;
+  socket.emit('chooseTrump', { roomCode, suit });
+  document.getElementById('trumpChoice').style.display = 'none';
+  document.getElementById('status').innerText = 'Козът е избран: ' + suit;
+}
+
+socket.on('trumpChosen', (suit) => {
+  document.getElementById('status').innerText = 'Козът е ' + suit;
+});
+
+socket.on('yourTurn', () => {
+  document.getElementById('status').innerText = 'Ти си на ход';
+});
+
+function playCard(card) {
+  const roomCode = document.getElementById('roomCode').value;
+  socket.emit('playCard', { roomCode, card });
+}
+
+socket.on('cardPlayed', ({ card, playerId }) => {
+  const tableDiv = document.getElementById('table');
+  const cardDiv = document.createElement('div');
+  cardDiv.classList.add('card');
+  cardDiv.innerText = card.value + ' ' + card.suit;
+  tableDiv.appendChild(cardDiv);
+});
+
+socket.on('roundWinner', ({ winnerId, points, teamPoints }) => {
+  document.getElementById('status').innerText =
+    `Ръката е взета от ${winnerId}
+Точки от ръката: ${points}
+Отбор 1: ${teamPoints[0]} / Отбор 2: ${teamPoints[1]}`;
+});
+
+socket.on('announces', (announces) => {
+  const status = document.getElementById('status');
+  announces.forEach(a => {
+    const cards = a.cards.map(c => c.value + ' ' + c.suit).join(', ');
+    const line = document.createElement('div');
+    line.innerText = `Обява: ${a.type} -> ${cards}`;
+    status.appendChild(line);
+  });
+});
+
+socket.on('gameOver', ({ team0, team1, winner }) => {
+  document.getElementById('status').innerText =
+    `Играта приключи!
+Отбор 1: ${team0} точки
+Отбор 2: ${team1} точки
+Победител: ${winner}`;
+  const restartBtn = document.createElement('button');
+  restartBtn.innerText = 'Нова игра';
+  restartBtn.onclick = () => {
+    const roomCode = document.getElementById('roomCode').value;
+    socket.emit('restartGame', roomCode);
+    restartBtn.remove();
+  };
+  document.getElementById('status').appendChild(restartBtn);
+});
+
+
