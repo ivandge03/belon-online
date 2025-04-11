@@ -1,16 +1,17 @@
 const socket = io();
 
 function joinRoom() {
+  const playerName = document.getElementById('playerName').value.trim();
   const roomCode = document.getElementById('roomCode').value.trim();
-  if (roomCode) {
-    socket.emit('joinRoom', roomCode);
+  if (playerName && roomCode) {
+    socket.emit('joinRoom', { roomCode, playerName });
     document.getElementById('status').innerText = 'Изчакване на други играчи...';
   }
 }
 
-
 socket.on('playersUpdate', (players) => {
-  document.getElementById('players').innerText = 'Играчите в стаята: ' + players.length;
+  document.getElementById('players').innerText =
+    'Играчите в стаята:\n' + players.join('\n');
 });
 
 socket.on('startGame', () => {
