@@ -17,16 +17,17 @@
       <button onclick="joinRoom()">Влез в стая</button>
     </div>
 
+    <div id="scoreboard" style="display:none">
+      <h3>Отбор 1: <span id="team0">0</span> | Отбор 2: <span id="team1">0</span></h3>
+    </div>
+
     <div id="status"></div>
     <div id="players"></div>
 
-    <!-- Зони за ръцете на играчите -->
-    <div id="hands">
-      <div id="hand-top" class="hand-position"></div>
-      <div id="hand-left" class="hand-position"></div>
-      <div id="hand-right" class="hand-position"></div>
-      <div id="hand-bottom" class="hand-position"></div>
-    </div>
+    <div id="hand-top" class="hand"></div>
+    <div id="hand-left" class="hand"></div>
+    <div id="hand-right" class="hand"></div>
+    <div id="hand-bottom" class="hand"></div>
 
     <div id="trumpChoice" style="display: none">
       <p>Избери коз:</p>
