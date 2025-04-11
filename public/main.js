@@ -1,5 +1,3 @@
-// public/main.js
-
 const socket = io();
 
 function joinRoom() {
@@ -26,12 +24,10 @@ socket.on('yourHand', (cards) => {
   cards.forEach(card => {
     const cardDiv = document.createElement('div');
     cardDiv.classList.add('card');
-
     const img = document.createElement('img');
     img.src = `/images/cards/${card.value}_${card.suit}.png`;
     img.classList.add('card');
     cardDiv.appendChild(img);
-
     cardDiv.onclick = () => playCard(card);
     handDiv.appendChild(cardDiv);
   });
@@ -50,7 +46,7 @@ socket.on('playersHands', ({ myIndex, totalPlayers }) => {
     const posId = `hand-${positions[relativeIndex]}`;
     const handDiv = document.getElementById(posId);
 
-    for (let j = 0; j < 8; j++) {
+    for (let j = 0; j < 5; j++) {
       const backImg = document.createElement('img');
       backImg.src = '/images/back.png';
       backImg.classList.add('card');
@@ -87,13 +83,20 @@ socket.on('cardPlayed', ({ card, playerId }) => {
   const tableDiv = document.getElementById('table');
   const cardDiv = document.createElement('div');
   cardDiv.classList.add('card');
-
   const img = document.createElement('img');
   img.src = `/images/cards/${card.value}_${card.suit}.png`;
   img.classList.add('card');
   cardDiv.appendChild(img);
-
   tableDiv.appendChild(cardDiv);
+});
+
+socket.on('dealAnimation', ({ count }) => {
+  const table = document.getElementById('table');
+  table.classList.add('dealing');
+
+  setTimeout(() => {
+    table.classList.remove('dealing');
+  }, 500 * count);
 });
 
 socket.on('roundWinner', ({ winnerId, points, teamPoints }) => {
