@@ -26,7 +26,12 @@ socket.on('yourHand', (cards) => {
   cards.forEach(card => {
     const cardDiv = document.createElement('div');
     cardDiv.classList.add('card');
-    cardDiv.innerText = card.value + ' ' + card.suit;
+
+    const img = document.createElement('img');
+    img.src = `/images/cards/${card.value}_${card.suit}.png`;
+    img.classList.add('card');
+    cardDiv.appendChild(img);
+
     cardDiv.onclick = () => playCard(card);
     handDiv.appendChild(cardDiv);
   });
@@ -82,7 +87,12 @@ socket.on('cardPlayed', ({ card, playerId }) => {
   const tableDiv = document.getElementById('table');
   const cardDiv = document.createElement('div');
   cardDiv.classList.add('card');
-  cardDiv.innerText = card.value + ' ' + card.suit;
+
+  const img = document.createElement('img');
+  img.src = `/images/cards/${card.value}_${card.suit}.png`;
+  img.classList.add('card');
+  cardDiv.appendChild(img);
+
   tableDiv.appendChild(cardDiv);
 });
 
