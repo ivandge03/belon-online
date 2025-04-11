@@ -1,55 +1,76 @@
+/* Общи стилове */
 body {
   font-family: Arial, sans-serif;
-  text-align: center;
-  background: #0e0e0e;
+  background-color: #0e0e0e;
   color: white;
   margin: 0;
   padding: 20px;
+  text-align: center;
 }
+
+h1 {
+  margin-bottom: 20px;
+  font-size: 36px;
+}
+
 input, button {
   padding: 10px;
-  margin: 10px;
-  border: none;
-  border-radius: 5px;
   font-size: 16px;
+  margin: 5px;
+  border: none;
+  border-radius: 4px;
 }
-button {
-  cursor: pointer;
-  background-color: #444;
-  color: white;
-}
-button:hover {
-  background-color: #666;
-}
-#hand {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-#table {
-  margin-top: 20px;
-  min-height: 60px;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-}
+
+/* Стил за карти */
 .card {
   display: inline-block;
-  padding: 10px;
   margin: 5px;
-  background: white;
+  padding: 12px 20px;
+  background-color: white;
   color: black;
   border-radius: 8px;
-  min-width: 40px;
-  font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  font-weight: bold;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+  transition: transform 0.2s;
 }
+
+.card:hover {
+  transform: scale(1.1);
+}
+
+/* Зона за избор на коз */
 #trumpChoice {
   margin-top: 20px;
 }
+
 #status {
   margin-top: 20px;
-  white-space: pre-line;
+  font-size: 18px;
+  color: #cccccc;
+}
+
+#players {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #bbbbbb;
+}
+
+/* Разположение на ръката и масата */
+#hand {
+  margin-top: 30px;
+  min-height: 100px;
+}
+
+#table {
+  margin-top: 30px;
+  min-height: 120px;
+}
+
+/* Стил за фона при стартирала игра */
+body.game-started {
+  background-image: url('/images/table.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
