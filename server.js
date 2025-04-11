@@ -1,4 +1,4 @@
-// server.js
+// ==== server.js ====
 
 const express = require('express');
 const path = require('path');
@@ -35,14 +35,16 @@ function shuffleDeck() {
 function restartGame(roomCode) {
   const room = rooms[roomCode];
   const deck = shuffleDeck();
-  const hands = [[], [], [], []];
 
-  for (let i = 0; i < 32; i++) {
+  // Раздаване на по 5 карти на играч (останалите ще се дораздадат после)
+  const hands = [[], [], [], []];
+  for (let i = 0; i < 20; i++) {
     hands[i % 4].push(deck[i]);
   }
 
   room.gameState = {
     hands,
+    remainingDeck: deck.slice(20), // 12 останали карти
     trump: null,
     trumpChooser: 0,
     trumpRound: 1,
@@ -54,28 +56,16 @@ function restartGame(roomCode) {
 
   for (let i = 0; i < 4; i++) {
     io.to(room.players[i]).emit('yourHand', hands[i]);
-    io.to(room.players[i]).emit('playersHands', {
-      myIndex: i,
-      totalPlayers: 4
-    });
   }
 
-  io.to(room.players[0]).emit('chooseTrump');
   io.to(roomCode).emit('startGame');
+  io.to(roomCode).emit('dealAnimation', { count: 5 });
+  io.to(room.players[0]).emit('chooseTrump');
 }
 
 io.on('connection', (socket) => {
   socket.on('joinRoom', ({ roomCode, playerName }) => {
-    console.log(`Играч ${playerName} се присъедини към стая: ${roomCode}`);
-
-    if (!rooms[roomCode]) {
-      rooms[roomCode] = {
-        players: [],
-        names: [],
-        gameState: {}
-      };
-    }
-
+    if (!rooms[roomCode]) rooms[roomCode] = { players: [], names: [], gameState: {} };
     if (rooms[roomCode].players.length >= 4) return;
 
     rooms[roomCode].players.push(socket.id);
@@ -93,11 +83,20 @@ io.on('connection', (socket) => {
     const room = rooms[roomCode];
     if (!room) return;
 
-    room.gameState.trump = suit;
-    io.to(roomCode).emit('trumpChosen', suit);
+    if (suit) {
+      room.gameState.trump = suit;
+      io.to(roomCode).emit('trumpChosen', suit);
 
-    const current = room.gameState.currentTurn;
-    io.to(room.players[current]).emit('yourTurn');
+      const current = room.gameState.currentTurn;
+      io.to(room.players[current]).emit('yourTurn');
+    } else {
+      room.gameState.trumpChooser++;
+      if (room.gameState.trumpChooser >= 4) {
+        io.to(roomCode).emit('gameOver', { team0: 0, team1: 0, winner: 'Никой не избра коз. Играта се анулира.' });
+      } else {
+        io.to(room.players[room.gameState.trumpChooser]).emit('chooseTrump');
+      }
+    }
   });
 
   socket.on('playCard', ({ roomCode, card }) => {
@@ -115,6 +114,16 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('cardPlayed', { card, playerId });
 
     if (room.gameState.table.length === 4) {
+      for (let i = 0; i < 4; i++) {
+        if (room.gameState.remainingDeck.length > 0) {
+          const newCard = room.gameState.remainingDeck.shift();
+          room.gameState.hands[i].push(newCard);
+          io.to(room.players[i]).emit('yourHand', room.gameState.hands[i]);
+        }
+      }
+
+      io.to(roomCode).emit('dealAnimation', { count: 1 });
+
       room.gameState.table = [];
       room.gameState.currentTurn = (current + 1) % 4;
 
@@ -125,6 +134,10 @@ io.on('connection', (socket) => {
       room.gameState.currentTurn = (current + 1) % 4;
       io.to(room.players[room.gameState.currentTurn]).emit('yourTurn');
     }
+  });
+
+  socket.on('restartGame', (roomCode) => {
+    if (rooms[roomCode]) restartGame(roomCode);
   });
 
   socket.on('disconnect', () => {
