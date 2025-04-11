@@ -15,6 +15,11 @@ body {
 
 #login {
   margin-top: 20px;
+  display: block;
+}
+
+#login.hidden {
+  display: none;
 }
 
 #login input {
