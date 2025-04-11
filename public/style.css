@@ -54,14 +54,14 @@ button {
   top: 50%;
   left: 10px;
   flex-direction: row;
-  transform: translateY(-50%) rotate(0deg);
+  transform: translateY(-50%) rotate(10deg);
 }
 
 #hand-right {
   top: 50%;
   right: 10px;
   flex-direction: row;
-  transform: translateY(-50%) rotate(0deg);
+  transform: translateY(-50%) rotate(-10deg);
 }
 
 .card {
