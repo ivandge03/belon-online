@@ -36,7 +36,6 @@ function restartGame(roomCode) {
   const room = rooms[roomCode];
   const deck = shuffleDeck();
 
-  // Раздаване на по 5 карти на играч (останалите ще се дораздадат после)
   const hands = [[], [], [], []];
   for (let i = 0; i < 20; i++) {
     hands[i % 4].push(deck[i]);
@@ -44,7 +43,7 @@ function restartGame(roomCode) {
 
   room.gameState = {
     hands,
-    remainingDeck: deck.slice(20), // 12 останали карти
+    remainingDeck: deck.slice(20),
     trump: null,
     trumpChooser: 0,
     trumpRound: 1,
@@ -52,6 +51,7 @@ function restartGame(roomCode) {
     table: [],
     points: [0, 0],
     announces: [[], [], [], []],
+    cardsPlayedThisTurn: [false, false, false, false]
   };
 
   for (let i = 0; i < 4; i++) {
@@ -61,6 +61,17 @@ function restartGame(roomCode) {
   io.to(roomCode).emit('startGame');
   io.to(roomCode).emit('dealAnimation', { count: 5 });
   io.to(room.players[0]).emit('chooseTrump');
+  sendPlayersHands(roomCode);
+}
+
+function sendPlayersHands(roomCode) {
+  const room = rooms[roomCode];
+  room.players.forEach((playerId, index) => {
+    io.to(playerId).emit('playersHands', {
+      myIndex: index,
+      totalPlayers: room.players.length
+    });
+  });
 }
 
 io.on('connection', (socket) => {
@@ -106,6 +117,11 @@ io.on('connection', (socket) => {
     const current = room.gameState.currentTurn;
     const playerId = room.players[current];
 
+    if (socket.id !== playerId) return; // ❌ Не е ред на този играч
+
+    if (room.gameState.cardsPlayedThisTurn[current]) return; // ❌ Играчът вече е играл карта този ход
+
+    room.gameState.cardsPlayedThisTurn[current] = true;
     room.gameState.table.push({ card, playerId });
     room.gameState.hands[current] = room.gameState.hands[current].filter(
       c => c.suit !== card.suit || c.value !== card.value
@@ -113,7 +129,12 @@ io.on('connection', (socket) => {
 
     io.to(roomCode).emit('cardPlayed', { card, playerId });
 
-    if (room.gameState.table.length === 4) {
+    const nextPlayerIndex = (current + 1) % 4;
+    room.gameState.currentTurn = nextPlayerIndex;
+
+    const allPlayed = room.gameState.cardsPlayedThisTurn.every(val => val);
+
+    if (allPlayed) {
       for (let i = 0; i < 4; i++) {
         if (room.gameState.remainingDeck.length > 0) {
           const newCard = room.gameState.remainingDeck.shift();
@@ -124,14 +145,18 @@ io.on('connection', (socket) => {
 
       io.to(roomCode).emit('dealAnimation', { count: 1 });
 
-      room.gameState.table = [];
-      room.gameState.currentTurn = (current + 1) % 4;
+      // Изпрати текущите точки
+      io.to(roomCode).emit('updateScore', {
+        team0: room.gameState.points[0],
+        team1: room.gameState.points[1],
+      });
+
+      room.gameState.cardsPlayedThisTurn = [false, false, false, false];
 
       setTimeout(() => {
         io.to(room.players[room.gameState.currentTurn]).emit('yourTurn');
       }, 1000);
     } else {
-      room.gameState.currentTurn = (current + 1) % 4;
       io.to(room.players[room.gameState.currentTurn]).emit('yourTurn');
     }
   });
