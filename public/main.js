@@ -12,7 +12,7 @@ function joinRoom() {
 }
 
 socket.on('playersUpdate', (names) => {
-  document.getElementById('players').innerHTML = 'Играч(и):<br>' + names.join('<br>');
+  document.getElementById('players').innerHTML = `Играчи (${names.length}):<br>` + names.join('<br>');
 });
 
 socket.on('startGame', () => {
