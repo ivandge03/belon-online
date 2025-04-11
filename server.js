@@ -52,9 +52,12 @@ function restartGame(roomCode) {
 
   for (let i = 0; i < 4; i++) {
     io.to(room.players[i]).emit('yourHand', hands[i]);
+    io.to(room.players[i]).emit('playersHands', {
+      myIndex: i,
+      totalPlayers: room.players.length
+    });
   }
 
-  const playerIndex = room.players.indexOf(room.players[0]);
   io.to(room.players[0]).emit('chooseTrump');
   io.to(roomCode).emit('startGame');
 }
