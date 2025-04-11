@@ -18,21 +18,24 @@
       <button onclick="joinRoom()">Влез в стая</button>
     </div>
 
-    <div id="scoreboard">
-      Отбор 1: <span id="team1Score">0</span> | Отбор 2: <span id="team2Score">0</span>
+    <!-- Табло за резултати (скрито по подразбиране) -->
+    <div id="scoreboard" class="hidden">
+      <div id="status">Изчакване на играчи...</div>
+      <div>Отбор 1: <span id="team1Score">0</span></div>
+      <div>Отбор 2: <span id="team2Score">0</span></div>
     </div>
 
-    <div id="status"></div>
+    <!-- Списък с играчи -->
     <div id="players"></div>
 
-    <!-- Ръце на играчите -->
+    <!-- Контейнери за картите -->
     <div id="hand-top" class="hand"></div>
     <div id="hand-left" class="hand"></div>
     <div id="hand-right" class="hand"></div>
     <div id="hand-bottom" class="hand"></div>
 
     <!-- Избор на коз -->
-    <div id="trumpChoice" style="display: none">
+    <div id="trumpChoice" class="hidden">
       <p>Избери коз:</p>
       <button onclick="sendTrump('spades')">♠</button>
       <button onclick="sendTrump('hearts')">♥</button>
