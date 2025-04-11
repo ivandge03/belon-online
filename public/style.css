@@ -1,56 +1,48 @@
-/* Основни стилове за страницата и играта Белот */
+/* Основни стилове за играта Белот */
 body {
   margin: 0;
   padding: 0;
-  font-family: sans-serif;
-  background: url("/images/table.png") no-repeat center center fixed;
+  font-family: Arial, sans-serif;
+  background: url('/images/table.png') no-repeat center center fixed;
   background-size: cover;
+  color: #fff;
   overflow: hidden;
 }
 
 #game {
-  text-align: center;
-  color: white;
-  padding: 10px;
   position: relative;
+  text-align: center;
 }
 
-#login {
-  margin-top: 20px;
+#login, #scoreboard, #trumpChoice, #status, #players {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 10px;
+  border-radius: 10px;
 }
 
-#login input {
-  margin: 5px;
-  padding: 5px;
-  font-size: 16px;
-}
-
-button {
-  padding: 6px 12px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-#status, #currentPlayer, #roundResult, #gameResult {
-  margin-top: 10px;
-  font-weight: bold;
+.hidden {
+  display: none;
 }
 
 .hand {
   position: absolute;
   display: flex;
   justify-content: center;
-  align-items: center;
+  gap: 5px;
 }
 
-#hand-bottom {
-  bottom: 10px;
+#hand-top {
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-#hand-top {
-  top: 10px;
+#hand-bottom {
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -67,94 +59,84 @@ button {
   transform: translateY(-50%) rotate(90deg);
 }
 
-.card {
-  width: 60px;
-  height: 90px;
-  margin: 4px;
-  border-radius: 8px;
-  transition: transform 0.3s ease;
-  animation: deal 0.4s ease forwards;
-}
-
-.card:hover {
-  transform: scale(1.1);
+.card img {
+  width: 70px;
+  height: 105px;
   cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
-@keyframes deal {
-  from {
-    transform: scale(0.5) translateY(-50px);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
+.card img:hover {
+  transform: scale(1.2);
 }
 
 #table {
   position: absolute;
-  top: 45%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
   gap: 10px;
 }
 
 #scoreboard {
-  position: absolute;
   top: 10px;
-  right: 15px;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
+  right: 10px;
+  left: auto;
+  transform: none;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+#status, #players {
+  top: auto;
+  bottom: 10px;
+  left: 10px;
+  transform: none;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+#players {
+  bottom: 60px;
+}
+
+#trumpChoice button {
+  font-size: 18px;
+  margin: 5px;
+  padding: 8px 12px;
+}
+
+#roundResult, #gameResult {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.9);
   padding: 10px;
   border-radius: 8px;
-}
-
-.hidden {
-  display: none;
-}
-
-#animations {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
+  font-size: 16px;
 }
 
 .animation-card {
-  width: 60px;
-  height: 90px;
+  position: absolute;
+  width: 70px;
+  height: 105px;
   background-size: cover;
-  animation: card-move 1s ease;
+  animation: cardMove 0.6s ease-in-out;
 }
 
-@keyframes card-move {
+@keyframes cardMove {
   from {
-    transform: translateY(-100px) scale(0.5);
     opacity: 0;
+    transform: scale(0.7);
   }
   to {
-    transform: translateY(0) scale(1);
     opacity: 1;
+    transform: scale(1);
   }
 }
 
-@media screen and (max-width: 768px) {
-  .card {
-    width: 40px;
-    height: 60px;
-  }
-
-  #hand-left,
-  #hand-right {
-    transform: translateY(-50%) rotate(0deg);
-  }
-
-  #hand-top {
-    transform: translateX(-50%) rotate(0deg);
+@media (max-width: 768px) {
+  .card img {
+    width: 50px;
+    height: 75px;
   }
 }
