@@ -1,10 +1,13 @@
 const socket = io();
 
 function joinRoom() {
-  const roomCode = document.getElementById('roomCode').value;
-  socket.emit('joinRoom', roomCode);
-  document.getElementById('status').innerText = 'Изчакване на други играчи...';
+  const roomCode = document.getElementById('roomCode').value.trim();
+  if (roomCode) {
+    socket.emit('joinRoom', roomCode);
+    document.getElementById('status').innerText = 'Изчакване на други играчи...';
+  }
 }
+
 
 socket.on('playersUpdate', (players) => {
   document.getElementById('players').innerText = 'Играчите в стаята: ' + players.length;
