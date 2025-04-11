@@ -53,15 +53,15 @@ button {
 #hand-left {
   top: 50%;
   left: 10px;
-  flex-direction: column;
-  transform: translateY(-50%) rotate(90deg);
+  flex-direction: row;
+  transform: translateY(-50%) rotate(0deg);
 }
 
 #hand-right {
   top: 50%;
   right: 10px;
-  flex-direction: column;
-  transform: translateY(-50%) rotate(-90deg);
+  flex-direction: row;
+  transform: translateY(-50%) rotate(0deg);
 }
 
 .card {
