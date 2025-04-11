@@ -22,15 +22,37 @@ socket.on('startGame', () => {
 });
 
 socket.on('yourHand', (cards) => {
-  const handDiv = document.getElementById('hand');
+  const handDiv = document.getElementById('hand-bottom');
   handDiv.innerHTML = '';
   cards.forEach(card => {
-    const cardImg = document.createElement('div');
-    cardImg.classList.add('card');
-    cardImg.innerText = card.value + ' ' + card.suit;
-    cardImg.onclick = () => playCard(card);
-    handDiv.appendChild(cardImg);
+    const cardDiv = document.createElement('div');
+    cardDiv.classList.add('card');
+    cardDiv.innerText = card.value + ' ' + card.suit;
+    cardDiv.onclick = () => playCard(card);
+    handDiv.appendChild(cardDiv);
   });
+});
+
+socket.on('playersHands', ({ myIndex, totalPlayers }) => {
+  ['hand-top', 'hand-left', 'hand-right'].forEach(id => {
+    document.getElementById(id).innerHTML = '';
+  });
+
+  const positions = ['bottom', 'right', 'top', 'left'];
+
+  for (let i = 0; i < totalPlayers; i++) {
+    if (i === myIndex) continue;
+    const relativeIndex = (i - myIndex + 4) % 4;
+    const posId = `hand-${positions[relativeIndex]}`;
+    const handDiv = document.getElementById(posId);
+
+    for (let j = 0; j < 8; j++) {
+      const backImg = document.createElement('img');
+      backImg.src = '/images/back.png';
+      backImg.classList.add('card');
+      handDiv.appendChild(backImg);
+    }
+  }
 });
 
 socket.on('chooseTrump', () => {
