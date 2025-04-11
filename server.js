@@ -1,3 +1,5 @@
+// server.js
+
 const express = require('express');
 const path = require('path');
 const http = require('http');
@@ -15,7 +17,6 @@ let rooms = {};
 
 const suits = ['spades', 'hearts', 'diamonds', 'clubs'];
 const values = ['7', '8', '9', 'J', 'Q', 'K', '10', 'A'];
-const valuePoints = { '7': 0, '8': 0, '9': 14, 'J': 20, 'Q': 3, 'K': 4, '10': 10, 'A': 11 };
 
 function shuffleDeck() {
   const deck = [];
@@ -53,6 +54,10 @@ function restartGame(roomCode) {
 
   for (let i = 0; i < 4; i++) {
     io.to(room.players[i]).emit('yourHand', hands[i]);
+    io.to(room.players[i]).emit('playersHands', {
+      myIndex: i,
+      totalPlayers: 4
+    });
   }
 
   io.to(room.players[0]).emit('chooseTrump');
@@ -61,16 +66,15 @@ function restartGame(roomCode) {
 
 io.on('connection', (socket) => {
   socket.on('joinRoom', ({ roomCode, playerName }) => {
-    console.log(`${playerName} влезе в стая: ${roomCode}`);
+    console.log(`Играч се присъедини към стая: ${roomCode}`);
 
-    if (!rooms[roomCode]) rooms[roomCode] = { players: [], names: [], gameState: {} };
+    if (!rooms[roomCode]) rooms[roomCode] = { players: [], gameState: {} };
     if (rooms[roomCode].players.length >= 4) return;
 
     rooms[roomCode].players.push(socket.id);
-    rooms[roomCode].names.push(playerName || 'Анонимен'); // ако не е въведено име
-
     socket.join(roomCode);
-    io.to(roomCode).emit('playersUpdate', rooms[roomCode].names);
+
+    io.to(roomCode).emit('playersUpdate', rooms[roomCode].players);
 
     if (rooms[roomCode].players.length === 4) {
       restartGame(roomCode);
@@ -115,21 +119,11 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('restartGame', (roomCode) => {
-    if (rooms[roomCode]) {
-      restartGame(roomCode);
-    }
-  });
-
   socket.on('disconnect', () => {
     for (const roomCode in rooms) {
       const room = rooms[roomCode];
-      const idx = room.players.indexOf(socket.id);
-      if (idx !== -1) {
-        room.players.splice(idx, 1);
-        room.names.splice(idx, 1);
-        io.to(roomCode).emit('playersUpdate', room.names);
-      }
+      room.players = room.players.filter(id => id !== socket.id);
+      io.to(roomCode).emit('playersUpdate', room.players);
     }
   });
 });
