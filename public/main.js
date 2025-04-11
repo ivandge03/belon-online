@@ -1,3 +1,5 @@
+// ==== public/main.js ====
+
 const socket = io();
 
 function joinRoom() {
@@ -16,6 +18,8 @@ socket.on('playersUpdate', (names) => {
 socket.on('startGame', () => {
   document.body.classList.add('game-started');
   document.getElementById('status').innerText = 'Играта започва!';
+  document.getElementById('players').style.display = 'none';
+  document.getElementById('scoreboard').style.display = 'block';
 });
 
 socket.on('yourHand', (cards) => {
@@ -39,13 +43,11 @@ socket.on('playersHands', ({ myIndex, totalPlayers }) => {
   });
 
   const positions = ['bottom', 'right', 'top', 'left'];
-
   for (let i = 0; i < totalPlayers; i++) {
     if (i === myIndex) continue;
     const relativeIndex = (i - myIndex + 4) % 4;
     const posId = `hand-${positions[relativeIndex]}`;
     const handDiv = document.getElementById(posId);
-
     for (let j = 0; j < 5; j++) {
       const backImg = document.createElement('img');
       backImg.src = '/images/back.png';
@@ -53,6 +55,15 @@ socket.on('playersHands', ({ myIndex, totalPlayers }) => {
       handDiv.appendChild(backImg);
     }
   }
+});
+
+socket.on('dealAnimation', ({ count }) => {
+  console.log(`Раздаваме ${count} карта(и)...`);
+});
+
+socket.on('updateScore', ({ team0, team1 }) => {
+  document.getElementById('team0').innerText = team0;
+  document.getElementById('team1').innerText = team1;
 });
 
 socket.on('chooseTrump', () => {
@@ -90,39 +101,3 @@ socket.on('cardPlayed', ({ card, playerId }) => {
   tableDiv.appendChild(cardDiv);
 });
 
-socket.on('dealAnimation', ({ count }) => {
-  const table = document.getElementById('table');
-  table.classList.add('dealing');
-
-  setTimeout(() => {
-    table.classList.remove('dealing');
-  }, 500 * count);
-});
-
-socket.on('roundWinner', ({ winnerId, points, teamPoints }) => {
-  document.getElementById('status').innerText =
-    `Ръката е взета от ${winnerId}\nТочки от ръката: ${points}\nОтбор 1: ${teamPoints[0]} / Отбор 2: ${teamPoints[1]}`;
-});
-
-socket.on('announces', (announces) => {
-  const status = document.getElementById('status');
-  announces.forEach(a => {
-    const cards = a.cards.map(c => c.value + ' ' + c.suit).join(', ');
-    const line = document.createElement('div');
-    line.innerText = `Обява: ${a.type} -> ${cards}`;
-    status.appendChild(line);
-  });
-});
-
-socket.on('gameOver', ({ team0, team1, winner }) => {
-  document.getElementById('status').innerText =
-    `Играта приключи!\nОтбор 1: ${team0} точки\nОтбор 2: ${team1} точки\nПобедител: ${winner}`;
-  const restartBtn = document.createElement('button');
-  restartBtn.innerText = 'Нова игра';
-  restartBtn.onclick = () => {
-    const roomCode = document.getElementById('roomCode').value;
-    socket.emit('restartGame', roomCode);
-    restartBtn.remove();
-  };
-  document.getElementById('status').appendChild(restartBtn);
-});
