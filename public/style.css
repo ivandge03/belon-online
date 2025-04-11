@@ -12,6 +12,10 @@ body {
   padding: 10px;
 }
 
+#login {
+  margin-top: 10px;
+}
+
 #login input {
   margin: 5px;
   padding: 5px;
@@ -41,42 +45,37 @@ button {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  justify-content: center;
-  position: absolute;
 }
 
 #hand-top {
   top: 20px;
   left: 50%;
   transform: translateX(-50%) rotate(180deg);
-  display: flex;
-  justify-content: center;
-  position: absolute;
 }
 
 #hand-left {
   top: 50%;
-  left: 20px;
-  transform: translateY(-50%) rotate(-90deg);
+  left: 10px;
   display: flex;
-  position: absolute;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(-50%) rotate(270deg);
 }
 
 #hand-right {
   top: 50%;
-  right: 20px;
-  transform: translateY(-50%) rotate(90deg);
+  right: 10px;
   display: flex;
-  position: absolute;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(-50%) rotate(90deg);
 }
 
 .card {
   width: 60px;
   height: 90px;
-  margin: 4px;
-  border-radius: 8px;
-  transition: transform 0.3s ease;
+  margin: 3px;
+  transition: transform 0.3s ease, top 0.3s ease, left 0.3s ease;
   animation: deal 0.4s ease forwards;
 }
 
@@ -109,11 +108,17 @@ button {
 }
 
 #scoreboard {
-  margin-top: 10px;
+  position: absolute;
+  top: 10px;
+  right: 20px;
   background: rgba(0, 0, 0, 0.6);
   padding: 10px;
   border-radius: 8px;
   display: inline-block;
+}
+
+.hidden {
+  display: none;
 }
 
 @media screen and (max-width: 768px) {
