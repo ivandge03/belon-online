@@ -11,7 +11,7 @@ function joinRoom() {
 }
 
 socket.on('playersUpdate', (names) => {
-  document.getElementById('players').innerHTML = `Играч(и):<br>${names.join('<br>')}`;
+  document.getElementById('players').innerHTML = `Играчи (${names.length}):<br>${names.join('<br>')}`;
 });
 
 socket.on('startGame', () => {
@@ -48,7 +48,7 @@ socket.on('playersHands', ({ myIndex, totalPlayers }) => {
     const posId = `hand-${positions[relativeIndex]}`;
     const handDiv = document.getElementById(posId);
 
-    for (let j = 0; j < 8; j++) {
+    for (let j = 0; j < 5; j++) {
       const backImg = document.createElement('img');
       backImg.src = '/images/back.png';
       backImg.classList.add('card');
@@ -65,7 +65,7 @@ function sendTrump(suit) {
   const roomCode = document.getElementById('roomCode').value;
   socket.emit('chooseTrump', { roomCode, suit });
   document.getElementById('trumpChoice').classList.add('hidden');
-  document.getElementById('status').innerText = `Козът е избран: ${suit}`;
+  document.getElementById('status').innerText = `Козът е избран: ${suit || 'пропуснат'}`;
 }
 
 socket.on('trumpChosen', (suit) => {
@@ -92,11 +92,13 @@ socket.on('cardPlayed', ({ card, playerId }) => {
   tableDiv.appendChild(cardDiv);
 });
 
-socket.on('roundWinner', ({ winner, team }) => {
-  document.getElementById('status').innerText = `${winner} взе ръката за отбор ${team + 1}`;
+socket.on('roundWinner', ({ winner, team, points, teamPoints }) => {
+  document.getElementById('status').innerText = `Ръката е взета от ${winner} (Отбор ${team + 1})\nТочки от ръката: ${points}\nОтбор 1: ${teamPoints[0]} / Отбор 2: ${teamPoints[1]}`;
+  document.getElementById('team1Score').innerText = teamPoints[0];
+  document.getElementById('team2Score').innerText = teamPoints[1];
   document.getElementById('table').innerHTML = '';
 });
 
-socket.on('gameOver', ({ scores }) => {
-  document.getElementById('status').innerText = `Играта приключи! Резултат - Отбор 1: ${scores[0]}, Отбор 2: ${scores[1]}`;
+socket.on('gameOver', ({ team0, team1, winner }) => {
+  document.getElementById('status').innerText = `Играта приключи!\nОтбор 1: ${team0} точки\nОтбор 2: ${team1} точки\nПобедител: ${winner}`;
 });
