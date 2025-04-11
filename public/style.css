@@ -1,4 +1,5 @@
-/* Общи стилове */
+/* style.css */
+
 body {
   font-family: Arial, sans-serif;
   background-color: #0e0e0e;
@@ -21,7 +22,6 @@ input, button {
   border-radius: 4px;
 }
 
-/* Стил за карти */
 .card {
   display: inline-block;
   margin: 5px;
@@ -39,7 +39,12 @@ input, button {
   transform: scale(1.1);
 }
 
-/* Зона за избор на коз */
+.card img, img.card {
+  width: 70px;
+  height: 100px;
+  object-fit: contain;
+}
+
 #trumpChoice {
   margin-top: 20px;
 }
@@ -56,18 +61,51 @@ input, button {
   color: #bbbbbb;
 }
 
-/* Разположение на ръката и масата */
-#hand {
-  margin-top: 30px;
-  min-height: 100px;
-}
-
 #table {
   margin-top: 30px;
   min-height: 120px;
 }
 
-/* Стил за фона при стартирала игра */
+/* Ръце на играчите */
+#hands {
+  position: relative;
+  width: 100%;
+  height: 60vh;
+  margin-top: 40px;
+}
+
+.hand-position {
+  position: absolute;
+  display: flex;
+  gap: 10px;
+}
+
+#hand-bottom {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#hand-top {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#hand-left {
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: left center;
+}
+
+#hand-right {
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  transform-origin: right center;
+}
+
 body.game-started {
   background-image: url('/images/table.png');
   background-size: cover;
