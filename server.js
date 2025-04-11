@@ -60,16 +60,17 @@ function restartGame(roomCode) {
 }
 
 io.on('connection', (socket) => {
-  socket.on('joinRoom', (roomCode) => {
-    console.log(`Играч се присъедини към стая: ${roomCode}`);
+  socket.on('joinRoom', ({ roomCode, playerName }) => {
+    console.log(`${playerName} влезе в стая: ${roomCode}`);
 
-    if (!rooms[roomCode]) rooms[roomCode] = { players: [], gameState: {} };
+    if (!rooms[roomCode]) rooms[roomCode] = { players: [], names: [], gameState: {} };
     if (rooms[roomCode].players.length >= 4) return;
 
     rooms[roomCode].players.push(socket.id);
-    socket.join(roomCode);
+    rooms[roomCode].names.push(playerName || 'Анонимен'); // ако не е въведено име
 
-    io.to(roomCode).emit('playersUpdate', rooms[roomCode].players);
+    socket.join(roomCode);
+    io.to(roomCode).emit('playersUpdate', rooms[roomCode].names);
 
     if (rooms[roomCode].players.length === 4) {
       restartGame(roomCode);
@@ -114,11 +115,21 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('restartGame', (roomCode) => {
+    if (rooms[roomCode]) {
+      restartGame(roomCode);
+    }
+  });
+
   socket.on('disconnect', () => {
     for (const roomCode in rooms) {
       const room = rooms[roomCode];
-      room.players = room.players.filter(id => id !== socket.id);
-      io.to(roomCode).emit('playersUpdate', room.players);
+      const idx = room.players.indexOf(socket.id);
+      if (idx !== -1) {
+        room.players.splice(idx, 1);
+        room.names.splice(idx, 1);
+        io.to(roomCode).emit('playersUpdate', room.names);
+      }
     }
   });
 });
