@@ -1,26 +1,28 @@
 <!DOCTYPE html>
 <html lang="bg">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Белот Онлайн</title>
+  <link rel="stylesheet" href="/style.css" />
   <script src="/socket.io/socket.io.js"></script>
-  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <div id="game">
-    <h1>Онлайн Белот</h1>
+    <h1 id="title">Онлайн Белот</h1>
 
     <div id="login">
-      <input id="playerName" placeholder="Име на играч">
-      <input id="roomCode" placeholder="Код на стая">
+      <input id="playerName" placeholder="Име на играч" />
+      <input id="roomCode" placeholder="Код на стая" />
       <button onclick="joinRoom()">Влез в стая</button>
     </div>
 
     <div id="scoreboard" class="hidden">
       <div id="status">Изчакване на играчи...</div>
-      <div>Отбор 1: <span id="team1Score">0</span></div>
-      <div>Отбор 2: <span id="team2Score">0</span></div>
+      <div id="teams">
+        <div>Отбор 1: <span id="team1Score">0</span></div>
+        <div>Отбор 2: <span id="team2Score">0</span></div>
+      </div>
     </div>
 
     <div id="players"></div>
@@ -36,20 +38,15 @@
       <button onclick="sendTrump('hearts')">♥</button>
       <button onclick="sendTrump('diamonds')">♦</button>
       <button onclick="sendTrump('clubs')">♣</button>
+      <button onclick="sendTrump('all')">Всичко коз</button>
+      <button onclick="sendTrump('none')">Без коз</button>
       <button onclick="sendTrump(null)">Пропусни</button>
     </div>
 
     <div id="table"></div>
-
-    <div id="currentPlayer" class="hidden"></div>
-    <div id="roundResult" class="hidden"></div>
-    <div id="gameResult" class="hidden"></div>
-
-    <div id="animations" class="hidden">
-      <div class="animation-card"></div>
-    </div>
   </div>
 
   <script src="/main.js"></script>
 </body>
 </html>
+
