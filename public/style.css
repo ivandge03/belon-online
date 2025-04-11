@@ -1,5 +1,11 @@
-body {
-  margin: 0;
+min-height: 100px;
+  position: absolute;
+  z-index: 5;
+}
+
+#hand-top {
+  top: 20px;body {
+  margi 0;
   padding: 0;
   font-family: sans-serif;
   background: url("/images/table.png") no-repeat center center fixed;
@@ -33,13 +39,6 @@ button {
   display: flex;
   justify-content: center;
   margin: 10px;
-  min-height: 100px;
-  position: absolute;
-  z-index: 5;
-}
-
-#hand-top {
-  top: 20px;
   left: 50%;
   transform: translateX(-50%) rotate(180deg);
 }
@@ -53,15 +52,19 @@ button {
 #hand-left {
   top: 50%;
   left: 10px;
-  flex-direction: row;
-  transform: translateY(-50%) rotate(10deg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(-50%);
 }
 
 #hand-right {
   top: 50%;
   right: 10px;
-  flex-direction: row;
-  transform: translateY(-50%) rotate(-10deg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(-50%);
 }
 
 .card {
@@ -121,4 +124,3 @@ button {
     transform: translateX(-50%) rotate(0deg);
   }
 }
-
