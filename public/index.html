@@ -11,7 +11,6 @@
   <div id="game">
     <h1>Онлайн Белот</h1>
 
-    <!-- Форма за вход -->
     <div id="login">
       <input id="playerName" placeholder="Име на играч" />
       <input id="roomCode" placeholder="Код на стая" />
@@ -21,7 +20,13 @@
     <div id="status"></div>
     <div id="players"></div>
 
-    <div id="hand"></div>
+    <!-- Зони за ръцете на играчите -->
+    <div id="hands">
+      <div id="hand-top" class="hand-position"></div>
+      <div id="hand-left" class="hand-position"></div>
+      <div id="hand-right" class="hand-position"></div>
+      <div id="hand-bottom" class="hand-position"></div>
+    </div>
 
     <div id="trumpChoice" style="display: none">
       <p>Избери коз:</p>
