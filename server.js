@@ -6,7 +6,6 @@ const { Server } = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
-
 const PORT = process.env.PORT || 10000;
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -18,16 +17,8 @@ const values = ['7', '8', '9', 'J', 'Q', 'K', '10', 'A'];
 
 function shuffleDeck() {
   const deck = [];
-  for (let suit of suits) {
-    for (let value of values) {
-      deck.push({ suit, value });
-    }
-  }
-  for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [deck[i], deck[j]] = [deck[j], deck[i]];
-  }
-  return deck;
+  suits.forEach(suit => values.forEach(value => deck.push({ suit, value })));
+  return deck.sort(() => Math.random() - 0.5);
 }
 
 function restartGame(roomCode) {
@@ -35,28 +26,21 @@ function restartGame(roomCode) {
   const deck = shuffleDeck();
   const hands = [[], [], [], []];
 
-  for (let i = 0; i < 20; i++) {
-    hands[i % 4].push(deck[i]);
-  }
+  // Коректно раздаване по 5 карти на играч (общо 20)
+  for (let i = 0; i < 20; i++) hands[i % 4].push(deck[i]);
 
   room.gameState = {
     hands,
     trump: null,
-    trumpChooser: 0,
-    trumpRound: 1,
     currentTurn: 0,
     table: [],
-    points: [0, 0],
-    announces: [[], [], [], []]
+    points: [0, 0]
   };
 
-  for (let i = 0; i < 4; i++) {
-    io.to(room.players[i]).emit('yourHand', hands[i]);
-    io.to(room.players[i]).emit('playersHands', {
-      myIndex: i,
-      totalPlayers: room.players.length
-    });
-  }
+  room.players.forEach((playerId, i) => {
+    io.to(playerId).emit('yourHand', hands[i]);
+    io.to(playerId).emit('playersHands', { myIndex: i, totalPlayers: 4 });
+  });
 
   io.to(room.players[0]).emit('chooseTrump');
   io.to(roomCode).emit('startGame');
@@ -73,69 +57,49 @@ io.on('connection', (socket) => {
 
     io.to(roomCode).emit('playersUpdate', rooms[roomCode].names);
 
-    if (rooms[roomCode].players.length === 4) {
-      restartGame(roomCode);
-    }
+    if (rooms[roomCode].players.length === 4) restartGame(roomCode);
   });
 
   socket.on('chooseTrump', ({ roomCode, suit }) => {
     const room = rooms[roomCode];
-    if (!room) return;
-
     room.gameState.trump = suit;
     io.to(roomCode).emit('trumpChosen', suit);
-
-    const current = room.gameState.currentTurn;
-    io.to(room.players[current]).emit('yourTurn');
+    io.to(room.players[room.gameState.currentTurn]).emit('yourTurn');
   });
 
   socket.on('playCard', ({ roomCode, card }) => {
     const room = rooms[roomCode];
-    if (!room) return;
-
     const current = room.gameState.currentTurn;
-    const playerId = room.players[current];
 
-    // ✅ Проверка дали играчът е на ход
-    if (socket.id !== playerId) return;
+    if (socket.id !== room.players[current]) return; // Проверка на ход
 
-    room.gameState.table.push({ card, playerId });
-    room.gameState.hands[current] = room.gameState.hands[current].filter(
-      c => c.suit !== card.suit || c.value !== card.value
-    );
+    room.gameState.table.push({ card, playerId: socket.id });
+    room.gameState.hands[current] = room.gameState.hands[current].filter(c => c !== card);
 
-    io.to(roomCode).emit('cardPlayed', { card, playerId });
+    io.to(roomCode).emit('cardPlayed', { card, playerId: socket.id });
 
     if (room.gameState.table.length === 4) {
       room.gameState.table = [];
       room.gameState.currentTurn = (current + 1) % 4;
-
-      setTimeout(() => {
-        io.to(room.players[room.gameState.currentTurn]).emit('yourTurn');
-      }, 1000);
     } else {
       room.gameState.currentTurn = (current + 1) % 4;
-      io.to(room.players[room.gameState.currentTurn]).emit('yourTurn');
     }
+
+    io.to(room.players[room.gameState.currentTurn]).emit('yourTurn');
   });
 
   socket.on('disconnect', () => {
-    for (const roomCode in rooms) {
-      const room = rooms[roomCode];
-      const index = room.players.indexOf(socket.id);
-      if (index !== -1) {
-        room.players.splice(index, 1);
-        room.names.splice(index, 1);
-        io.to(roomCode).emit('playersUpdate', room.names);
+    for (let roomCode in rooms) {
+      const index = rooms[roomCode].players.indexOf(socket.id);
+      if (index >= 0) {
+        rooms[roomCode].players.splice(index, 1);
+        rooms[roomCode].names.splice(index, 1);
+        io.to(roomCode).emit('playersUpdate', rooms[roomCode].names);
       }
     }
   });
 });
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-server.listen(PORT, () => {
-  console.log(`Сървърът работи на порт ${PORT}`);
-});
+server.listen(PORT, () => console.log(`Сървърът работи на порт ${PORT}`));
