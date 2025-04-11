@@ -1,5 +1,3 @@
-// ==== server.js ====
-
 const express = require('express');
 const path = require('path');
 const http = require('http');
@@ -35,43 +33,30 @@ function shuffleDeck() {
 function restartGame(roomCode) {
   const room = rooms[roomCode];
   const deck = shuffleDeck();
-
   const hands = [[], [], [], []];
+
   for (let i = 0; i < 20; i++) {
     hands[i % 4].push(deck[i]);
   }
 
   room.gameState = {
     hands,
-    remainingDeck: deck.slice(20),
     trump: null,
     trumpChooser: 0,
     trumpRound: 1,
     currentTurn: 0,
     table: [],
     points: [0, 0],
-    announces: [[], [], [], []],
-    cardsPlayedThisTurn: [false, false, false, false]
+    announces: [[], [], [], []]
   };
 
   for (let i = 0; i < 4; i++) {
     io.to(room.players[i]).emit('yourHand', hands[i]);
   }
 
-  io.to(roomCode).emit('startGame');
-  io.to(roomCode).emit('dealAnimation', { count: 5 });
+  const playerIndex = room.players.indexOf(room.players[0]);
   io.to(room.players[0]).emit('chooseTrump');
-  sendPlayersHands(roomCode);
-}
-
-function sendPlayersHands(roomCode) {
-  const room = rooms[roomCode];
-  room.players.forEach((playerId, index) => {
-    io.to(playerId).emit('playersHands', {
-      myIndex: index,
-      totalPlayers: room.players.length
-    });
-  });
+  io.to(roomCode).emit('startGame');
 }
 
 io.on('connection', (socket) => {
@@ -94,20 +79,11 @@ io.on('connection', (socket) => {
     const room = rooms[roomCode];
     if (!room) return;
 
-    if (suit) {
-      room.gameState.trump = suit;
-      io.to(roomCode).emit('trumpChosen', suit);
+    room.gameState.trump = suit;
+    io.to(roomCode).emit('trumpChosen', suit);
 
-      const current = room.gameState.currentTurn;
-      io.to(room.players[current]).emit('yourTurn');
-    } else {
-      room.gameState.trumpChooser++;
-      if (room.gameState.trumpChooser >= 4) {
-        io.to(roomCode).emit('gameOver', { team0: 0, team1: 0, winner: 'Никой не избра коз. Играта се анулира.' });
-      } else {
-        io.to(room.players[room.gameState.trumpChooser]).emit('chooseTrump');
-      }
-    }
+    const current = room.gameState.currentTurn;
+    io.to(room.players[current]).emit('yourTurn');
   });
 
   socket.on('playCard', ({ roomCode, card }) => {
@@ -117,11 +93,6 @@ io.on('connection', (socket) => {
     const current = room.gameState.currentTurn;
     const playerId = room.players[current];
 
-    if (socket.id !== playerId) return; // ❌ Не е ред на този играч
-
-    if (room.gameState.cardsPlayedThisTurn[current]) return; // ❌ Играчът вече е играл карта този ход
-
-    room.gameState.cardsPlayedThisTurn[current] = true;
     room.gameState.table.push({ card, playerId });
     room.gameState.hands[current] = room.gameState.hands[current].filter(
       c => c.suit !== card.suit || c.value !== card.value
@@ -129,40 +100,17 @@ io.on('connection', (socket) => {
 
     io.to(roomCode).emit('cardPlayed', { card, playerId });
 
-    const nextPlayerIndex = (current + 1) % 4;
-    room.gameState.currentTurn = nextPlayerIndex;
-
-    const allPlayed = room.gameState.cardsPlayedThisTurn.every(val => val);
-
-    if (allPlayed) {
-      for (let i = 0; i < 4; i++) {
-        if (room.gameState.remainingDeck.length > 0) {
-          const newCard = room.gameState.remainingDeck.shift();
-          room.gameState.hands[i].push(newCard);
-          io.to(room.players[i]).emit('yourHand', room.gameState.hands[i]);
-        }
-      }
-
-      io.to(roomCode).emit('dealAnimation', { count: 1 });
-
-      // Изпрати текущите точки
-      io.to(roomCode).emit('updateScore', {
-        team0: room.gameState.points[0],
-        team1: room.gameState.points[1],
-      });
-
-      room.gameState.cardsPlayedThisTurn = [false, false, false, false];
+    if (room.gameState.table.length === 4) {
+      room.gameState.table = [];
+      room.gameState.currentTurn = (current + 1) % 4;
 
       setTimeout(() => {
         io.to(room.players[room.gameState.currentTurn]).emit('yourTurn');
       }, 1000);
     } else {
+      room.gameState.currentTurn = (current + 1) % 4;
       io.to(room.players[room.gameState.currentTurn]).emit('yourTurn');
     }
-  });
-
-  socket.on('restartGame', (roomCode) => {
-    if (rooms[roomCode]) restartGame(roomCode);
   });
 
   socket.on('disconnect', () => {
