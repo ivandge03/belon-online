@@ -34,48 +34,58 @@ button {
   justify-content: center;
   margin: 10px;
   min-height: 100px;
+  position: absolute;
+  z-index: 5;
 }
 
 #hand-top {
-  position: absolute;
   top: 20px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) rotate(180deg);
 }
 
 #hand-bottom {
-  position: absolute;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 #hand-left {
-  position: absolute;
   top: 50%;
   left: 10px;
-  transform: translateY(-50%);
   flex-direction: column;
+  transform: translateY(-50%) rotate(90deg);
 }
 
 #hand-right {
-  position: absolute;
   top: 50%;
   right: 10px;
-  transform: translateY(-50%);
   flex-direction: column;
+  transform: translateY(-50%) rotate(-90deg);
 }
 
 .card {
   width: 60px;
   height: 90px;
   margin: 3px;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, top 0.3s ease, left 0.3s ease;
+  animation: deal 0.4s ease forwards;
 }
 
 .card:hover {
   transform: scale(1.1);
   cursor: pointer;
+}
+
+@keyframes deal {
+  from {
+    transform: scale(0.5) translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 
 #table {
@@ -87,6 +97,7 @@ button {
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
+  z-index: 1;
 }
 
 #scoreboard {
@@ -96,3 +107,18 @@ button {
   border-radius: 8px;
   display: inline-block;
 }
+
+@media screen and (max-width: 768px) {
+  .card {
+    width: 40px;
+    height: 60px;
+  }
+  #hand-left, #hand-right {
+    transform: translateY(-50%) rotate(0deg);
+    flex-direction: row;
+  }
+  #hand-top {
+    transform: translateX(-50%) rotate(0deg);
+  }
+}
+
