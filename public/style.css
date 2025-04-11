@@ -1,73 +1,140 @@
-/* Основни стилове за играта Белот */
 body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  background: url('/images/table.png') no-repeat center center fixed;
+  background-color: #0e0e0e;
+  color: white;
+  text-align: center;
+  background-image: url('/images/table.png');
   background-size: cover;
-  color: #fff;
+  background-position: center;
+  background-repeat: no-repeat;
   overflow: hidden;
 }
 
-#game {
-  position: relative;
-  text-align: center;
+h1 {
+  margin-top: 20px;
+  font-size: 36px;
+  color: white;
+  text-shadow: 2px 2px #000;
 }
 
-#login, #scoreboard, #trumpChoice, #status, #players {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
+#login {
+  margin-top: 20px;
+}
+
+#login input, #login button {
   padding: 10px;
-  border-radius: 10px;
+  font-size: 16px;
+  margin: 5px;
+  border-radius: 8px;
+  border: none;
+}
+
+#login button {
+  background-color: #1a8f4f;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+#login button:hover {
+  background-color: #156c3d;
 }
 
 .hidden {
-  display: none;
+  display: none !important;
+}
+
+#scoreboard {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 18px;
+  color: white;
+}
+
+#players {
+  margin-top: 10px;
+  font-size: 16px;
 }
 
 .hand {
-  position: absolute;
   display: flex;
+  gap: 6px;
+}
+
+#hand-top,
+#hand-bottom {
   justify-content: center;
-  gap: 5px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 #hand-top {
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 100px;
 }
 
 #hand-bottom {
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 100px;
+}
+
+#hand-left,
+#hand-right {
+  flex-direction: column;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 #hand-left {
-  top: 50%;
-  left: 20px;
-  transform: translateY(-50%) rotate(90deg);
+  left: 30px;
 }
 
 #hand-right {
-  top: 50%;
-  right: 20px;
-  transform: translateY(-50%) rotate(90deg);
+  right: 30px;
 }
 
 .card img {
-  width: 70px;
-  height: 105px;
-  cursor: pointer;
-  transition: transform 0.3s ease;
+  height: 80px;
+  width: auto;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s;
 }
 
 .card img:hover {
-  transform: scale(1.2);
+  transform: translateY(-10px);
+  cursor: pointer;
+}
+
+#trumpChoice {
+  position: absolute;
+  bottom: 150px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0,0,0,0.5);
+  padding: 10px 20px;
+  border-radius: 8px;
+}
+
+#trumpChoice button {
+  margin: 5px;
+  padding: 8px 12px;
+  font-size: 20px;
+  border: none;
+  border-radius: 6px;
+  background-color: #444;
+  color: white;
+  cursor: pointer;
+}
+
+#trumpChoice button:hover {
+  background-color: #666;
 }
 
 #table {
@@ -76,67 +143,12 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
-  gap: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-#scoreboard {
-  top: 10px;
-  right: 10px;
-  left: auto;
-  transform: none;
-  background: rgba(0, 0, 0, 0.8);
-}
-
-#status, #players {
-  top: auto;
-  bottom: 10px;
-  left: 10px;
-  transform: none;
-  background: rgba(0, 0, 0, 0.8);
-}
-
-#players {
-  bottom: 60px;
-}
-
-#trumpChoice button {
-  font-size: 18px;
-  margin: 5px;
-  padding: 8px 12px;
-}
-
-#roundResult, #gameResult {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.9);
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 16px;
-}
-
-.animation-card {
-  position: absolute;
-  width: 70px;
-  height: 105px;
-  background-size: cover;
-  animation: cardMove 0.6s ease-in-out;
-}
-
-@keyframes cardMove {
-  from {
-    opacity: 0;
-    transform: scale(0.7);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@media (max-width: 768px) {
-  .card img {
-    width: 50px;
-    height: 75px;
-  }
+#status {
+  margin-top: 10px;
+  font-weight: bold;
 }
