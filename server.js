@@ -9,8 +9,123 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 10000;
 
-// Тук казваме на Express да зарежда статични файлове от папката "public"
 app.use(express.static(path.join(__dirname, 'public')));
+
+let rooms = {};
+
+const suits = ['spades', 'hearts', 'diamonds', 'clubs'];
+const values = ['7', '8', '9', 'J', 'Q', 'K', '10', 'A'];
+const valuePoints = { '7': 0, '8': 0, '9': 14, 'J': 20, 'Q': 3, 'K': 4, '10': 10, 'A': 11 };
+
+function shuffleDeck() {
+  const deck = [];
+  for (let suit of suits) {
+    for (let value of values) {
+      deck.push({ suit, value });
+    }
+  }
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
+}
+
+function restartGame(roomCode) {
+  const room = rooms[roomCode];
+  const deck = shuffleDeck();
+  const hands = [[], [], [], []];
+
+  for (let i = 0; i < 32; i++) {
+    hands[i % 4].push(deck[i]);
+  }
+
+  room.gameState = {
+    hands,
+    trump: null,
+    trumpChooser: 0,
+    trumpRound: 1,
+    currentTurn: 0,
+    table: [],
+    points: [0, 0],
+    announces: [[], [], [], []],
+  };
+
+  for (let i = 0; i < 4; i++) {
+    io.to(room.players[i]).emit('yourHand', hands[i]);
+  }
+
+  io.to(room.players[0]).emit('chooseTrump');
+  io.to(roomCode).emit('startGame');
+}
+
+io.on('connection', (socket) => {
+  socket.on('joinRoom', (roomCode) => {
+    console.log(`Играч се присъедини към стая: ${roomCode}`);
+
+    if (!rooms[roomCode]) rooms[roomCode] = { players: [], gameState: {} };
+    if (rooms[roomCode].players.length >= 4) return;
+
+    rooms[roomCode].players.push(socket.id);
+    socket.join(roomCode);
+
+    io.to(roomCode).emit('playersUpdate', rooms[roomCode].players);
+
+    if (rooms[roomCode].players.length === 4) {
+      restartGame(roomCode);
+    }
+  });
+
+  socket.on('chooseTrump', ({ roomCode, suit }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+
+    room.gameState.trump = suit;
+    io.to(roomCode).emit('trumpChosen', suit);
+
+    const current = room.gameState.currentTurn;
+    io.to(room.players[current]).emit('yourTurn');
+  });
+
+  socket.on('playCard', ({ roomCode, card }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+
+    const current = room.gameState.currentTurn;
+    const playerId = room.players[current];
+
+    room.gameState.table.push({ card, playerId });
+    room.gameState.hands[current] = room.gameState.hands[current].filter(
+      c => c.suit !== card.suit || c.value !== card.value
+    );
+
+    io.to(roomCode).emit('cardPlayed', { card, playerId });
+
+    if (room.gameState.table.length === 4) {
+      room.gameState.table = [];
+      room.gameState.currentTurn = (current + 1) % 4;
+
+      setTimeout(() => {
+        io.to(room.players[room.gameState.currentTurn]).emit('yourTurn');
+      }, 1000);
+    } else {
+      room.gameState.currentTurn = (current + 1) % 4;
+      io.to(room.players[room.gameState.currentTurn]).emit('yourTurn');
+    }
+  });
+
+  socket.on('disconnect', () => {
+    for (const roomCode in rooms) {
+      const room = rooms[roomCode];
+      room.players = room.players.filter(id => id !== socket.id);
+      io.to(roomCode).emit('playersUpdate', room.players);
+    }
+  });
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 server.listen(PORT, () => {
   console.log(`Сървърът работи на порт ${PORT}`);
