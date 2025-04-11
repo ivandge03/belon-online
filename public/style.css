@@ -1,3 +1,4 @@
+/* Основни стилове за страницата и играта Белот */
 body {
   margin: 0;
   padding: 0;
@@ -11,6 +12,7 @@ body {
   text-align: center;
   color: white;
   padding: 10px;
+  position: relative;
 }
 
 #login {
@@ -29,7 +31,7 @@ button {
   cursor: pointer;
 }
 
-#status {
+#status, #currentPlayer, #roundResult, #gameResult {
   margin-top: 10px;
   font-weight: bold;
 }
@@ -113,6 +115,32 @@ button {
 
 .hidden {
   display: none;
+}
+
+#animations {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.animation-card {
+  width: 60px;
+  height: 90px;
+  background-size: cover;
+  animation: card-move 1s ease;
+}
+
+@keyframes card-move {
+  from {
+    transform: translateY(-100px) scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 @media screen and (max-width: 768px) {
