@@ -14,10 +14,9 @@ socket.on('playersUpdate', (names) => {
 });
 
 socket.on('startGame', () => {
-  document.body.classList.add('game-started');
-  document.getElementById('status').innerText = 'Играта започва!';
   document.getElementById('login').classList.add('hidden');
-  document.getElementById('scoreboard').style.display = 'inline-block';
+  document.getElementById('scoreboard').classList.remove('hidden');
+  document.getElementById('status').innerText = 'Играта започна!';
 });
 
 socket.on('yourHand', (cards) => {
