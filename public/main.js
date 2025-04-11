@@ -1,5 +1,3 @@
-// ==== public/main.js ====
-
 const socket = io();
 
 function joinRoom() {
@@ -12,14 +10,14 @@ function joinRoom() {
 }
 
 socket.on('playersUpdate', (names) => {
-  document.getElementById('players').innerHTML = `Играчи (${names.length}):<br>` + names.join('<br>');
+  document.getElementById('players').innerHTML = 'Играчите (' + names.length + '):<br>' + names.join('<br>');
 });
 
 socket.on('startGame', () => {
   document.body.classList.add('game-started');
   document.getElementById('status').innerText = 'Играта започва!';
-  document.getElementById('players').style.display = 'none';
-  document.getElementById('scoreboard').style.display = 'block';
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('scoreboard').style.display = 'inline-block';
 });
 
 socket.on('yourHand', (cards) => {
@@ -28,10 +26,12 @@ socket.on('yourHand', (cards) => {
   cards.forEach(card => {
     const cardDiv = document.createElement('div');
     cardDiv.classList.add('card');
+
     const img = document.createElement('img');
     img.src = `/images/cards/${card.value}_${card.suit}.png`;
     img.classList.add('card');
     cardDiv.appendChild(img);
+
     cardDiv.onclick = () => playCard(card);
     handDiv.appendChild(cardDiv);
   });
@@ -43,27 +43,20 @@ socket.on('playersHands', ({ myIndex, totalPlayers }) => {
   });
 
   const positions = ['bottom', 'right', 'top', 'left'];
+
   for (let i = 0; i < totalPlayers; i++) {
     if (i === myIndex) continue;
     const relativeIndex = (i - myIndex + 4) % 4;
     const posId = `hand-${positions[relativeIndex]}`;
     const handDiv = document.getElementById(posId);
-    for (let j = 0; j < 5; j++) {
+
+    for (let j = 0; j < 8; j++) {
       const backImg = document.createElement('img');
       backImg.src = '/images/back.png';
       backImg.classList.add('card');
       handDiv.appendChild(backImg);
     }
   }
-});
-
-socket.on('dealAnimation', ({ count }) => {
-  console.log(`Раздаваме ${count} карта(и)...`);
-});
-
-socket.on('updateScore', ({ team0, team1 }) => {
-  document.getElementById('team0').innerText = team0;
-  document.getElementById('team1').innerText = team1;
 });
 
 socket.on('chooseTrump', () => {
@@ -94,10 +87,39 @@ socket.on('cardPlayed', ({ card, playerId }) => {
   const tableDiv = document.getElementById('table');
   const cardDiv = document.createElement('div');
   cardDiv.classList.add('card');
+
   const img = document.createElement('img');
   img.src = `/images/cards/${card.value}_${card.suit}.png`;
   img.classList.add('card');
   cardDiv.appendChild(img);
+
   tableDiv.appendChild(cardDiv);
 });
 
+socket.on('roundWinner', ({ winnerId, points, teamPoints }) => {
+  document.getElementById('status').innerText =
+    `Ръката е взета от ${winnerId}\nТочки от ръката: ${points}\nОтбор 1: ${teamPoints[0]} / Отбор 2: ${teamPoints[1]}`;
+});
+
+socket.on('announces', (announces) => {
+  const status = document.getElementById('status');
+  announces.forEach(a => {
+    const cards = a.cards.map(c => c.value + ' ' + c.suit).join(', ');
+    const line = document.createElement('div');
+    line.innerText = `Обява: ${a.type} -> ${cards}`;
+    status.appendChild(line);
+  });
+});
+
+socket.on('gameOver', ({ team0, team1, winner }) => {
+  document.getElementById('status').innerText =
+    `Играта приключи!\nОтбор 1: ${team0} точки\nОтбор 2: ${team1} точки\nПобедител: ${winner}`;
+  const restartBtn = document.createElement('button');
+  restartBtn.innerText = 'Нова игра';
+  restartBtn.onclick = () => {
+    const roomCode = document.getElementById('roomCode').value;
+    socket.emit('restartGame', roomCode);
+    restartBtn.remove();
+  };
+  document.getElementById('status').appendChild(restartBtn);
+});
